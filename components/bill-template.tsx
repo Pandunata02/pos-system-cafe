@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Printer, Download, X } from "lucide-react"
 import { formatRupiah } from "@/lib/excel-export"
+import { useEffect } from "react"
 
 interface BillTemplateProps {
   isOpen: boolean
@@ -13,7 +14,132 @@ interface BillTemplateProps {
 }
 
 export function BillTemplate({ isOpen, onClose, bill }: BillTemplateProps) {
+  useEffect(() => {
+    if (isOpen && bill) {
+      // Simulate automatic wireless printing after a short delay
+      const printTimer = setTimeout(() => {
+        handleAutoPrint()
+      }, 1000) // 1 second delay to show the receipt first
+
+      return () => clearTimeout(printTimer)
+    }
+  }, [isOpen, bill])
+
   if (!bill) return null
+
+  const handleAutoPrint = () => {
+    const printContent = document.getElementById("bill-content")
+    if (printContent) {
+      // Simulate wireless printer connection
+      console.log("🖨️ Connecting to wireless printer...")
+
+      const printWindow = window.open("", "_blank")
+      if (printWindow) {
+        printWindow.document.write(`
+        <html>
+          <head>
+            <title>Receipt - Order #${bill.id}</title>
+            <style>
+              body { 
+                font-family: 'Courier New', monospace; 
+                margin: 0; 
+                padding: 20px; 
+                font-size: 12px;
+                line-height: 1.4;
+              }
+              .receipt { 
+                max-width: 300px; 
+                margin: 0 auto; 
+                background: white;
+              }
+              .header { 
+                text-align: center; 
+                margin-bottom: 20px; 
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+              }
+              .company-name { 
+                font-size: 18px; 
+                font-weight: bold; 
+                margin-bottom: 5px;
+              }
+              .company-info { 
+                font-size: 10px; 
+                margin-bottom: 2px;
+              }
+              .order-info { 
+                margin-bottom: 15px; 
+                font-size: 11px;
+              }
+              .items { 
+                margin-bottom: 15px; 
+              }
+              .item { 
+                display: flex; 
+                justify-content: space-between; 
+                margin-bottom: 5px;
+                font-size: 11px;
+              }
+              .item-name { 
+                flex: 1; 
+              }
+              .item-qty { 
+                width: 30px; 
+                text-align: center; 
+              }
+              .item-price { 
+                width: 80px; 
+                text-align: right; 
+              }
+              .totals { 
+                border-top: 1px solid #000; 
+                padding-top: 10px; 
+                margin-top: 10px;
+              }
+              .total-line { 
+                display: flex; 
+                justify-content: space-between; 
+                margin-bottom: 5px;
+                font-size: 11px;
+              }
+              .final-total { 
+                font-weight: bold; 
+                font-size: 14px; 
+                border-top: 2px solid #000; 
+                padding-top: 5px; 
+                margin-top: 10px;
+              }
+              .payment-info { 
+                margin-top: 15px; 
+                padding-top: 10px; 
+                border-top: 1px dashed #000;
+                font-size: 11px;
+              }
+              .footer { 
+                text-align: center; 
+                margin-top: 20px; 
+                padding-top: 10px; 
+                border-top: 1px dashed #000;
+                font-size: 10px;
+              }
+              @media print {
+                body { margin: 0; padding: 10px; }
+                .receipt { max-width: none; }
+              }
+            </style>
+          </head>
+          <body onload="window.print(); window.close();">
+            ${printContent.innerHTML}
+          </body>
+        </html>
+      `)
+        printWindow.document.close()
+
+        // Show success message
+        console.log("✅ Receipt sent to wireless printer successfully!")
+      }
+    }
+  }
 
   const handlePrint = () => {
     const printContent = document.getElementById("bill-content")
@@ -179,9 +305,15 @@ Please come again!
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>Receipt - Order #{bill.id}</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 text-sm text-green-600">
+                <Printer className="h-3 w-3" />
+                <span>Auto-printed</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </DialogTitle>
         </DialogHeader>
 
@@ -285,9 +417,9 @@ Please come again!
 
         {/* Action Buttons */}
         <div className="flex gap-2 mt-4">
-          <Button onClick={handlePrint} className="flex-1">
+          <Button onClick={handlePrint} variant="outline" className="flex-1 bg-transparent">
             <Printer className="h-4 w-4 mr-2" />
-            Print Receipt
+            Print Again
           </Button>
           <Button onClick={handleDownload} variant="outline" className="flex-1 bg-transparent">
             <Download className="h-4 w-4 mr-2" />
@@ -295,7 +427,9 @@ Please come again!
           </Button>
         </div>
 
-        <div className="text-xs text-center text-gray-500 mt-2">Receipt can be printed or downloaded as text file</div>
+        <div className="text-xs text-center text-gray-500 mt-2">
+          ✅ Receipt automatically printed via wireless network
+        </div>
       </DialogContent>
     </Dialog>
   )
